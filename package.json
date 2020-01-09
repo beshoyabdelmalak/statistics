@@ -1,0 +1,24 @@
+{
+  "name": "statistics",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon app.js"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "bootstrap": "^4.4.1",
+    "express": "^4.17.1",
+    "express-handlebars": "^3.1.0",
+    "jquery": "^3.4.1",
+    "mongoose": "^5.8.2",
+    "nodemon": "^2.0.2",
+    "plotly": "^1.0.6",
+    "plotly.js-dist": "^1.51.3",
+    "popper.js": "^1.16.0",
+    "pug": "^2.0.4"
+  },
+  "devDependencies": {}
+}

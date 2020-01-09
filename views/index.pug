@@ -1,0 +1,39 @@
+html
+  head
+    title= title
+    script(src="https://cdn.plot.ly/plotly-latest.min.js")
+    script(src="https://code.jquery.com/jquery-3.4.1.min.js")
+    script(src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js")
+    link(rel='stylesheet', href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css", type='text/css')
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js")
+  body
+    .container(style='min-width: 1000px')
+      .row.m-0
+        label(for='selectUser') Select User
+      form#form(method='POST' action='/')
+          .row.form-group
+            .col-md-3
+              select#selectUser.form-control(name='user')
+                option(value=null,selected= true) Select User
+                each user in users
+                  option(value=user._id)=user.name.first+" "+user.name.last
+                //- each user in users
+                //-   option=user
+            .col-md-3
+              select#selectLevel.form-control(name='level')
+                option(value=null,selected= true) Select Level
+                each level in levels
+                  option=level
+            button.btn.btn-primary(type='submit') Submit
+    if data
+      div#myChart
+    if error
+      .container(style='min-width: 1000px').alert.alert-danger
+        strong Error
+        p No logs were found.
+
+
+script.
+  var data = JSON.parse('!{JSON.stringify(data)}');
+  Plotly.newPlot("myChart",data[0], data[1]);
+
