@@ -25,6 +25,17 @@ html
                 each level in levels
                   option=level
             button.btn.btn-primary(type='submit') Submit
+    .container(style='min-width: 1000px')
+      .row.m-0
+        label(for='selectUser') Select Level
+      form#form(method='POST' action='/')
+        .row.form-group
+          .col-md-4
+            select#selectLevel1.form-control(name='level')
+              option(value=null,selected= true) Select Level
+              each level in levels
+                option=level
+          button.btn.btn-primary(type='submit') Submit
     if data
       div#myChart
     if error
@@ -35,5 +46,6 @@ html
 
 script.
   var data = JSON.parse('!{JSON.stringify(data)}');
+  console.log(data[0])
   Plotly.newPlot("myChart",data[0], data[1]);
 
