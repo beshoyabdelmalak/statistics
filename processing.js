@@ -94,6 +94,8 @@ module.exports = {
     }
     users.forEach(function (user) {
       console.log(user._id)
+      // for each user
+      // keep track of the number of creates,changes, run and time
       var first = true;
       var begin_time = new Date();
       let number_of_creates = 0;
@@ -117,20 +119,19 @@ module.exports = {
             number_of_creates++;
             time.push(time_diff(begin_time, log.publishedDate, false));
           }
-          else if (log.title == "change" && (log.event.includes("change") || log.event.includes("move"))) {
+          // change, move, delete
+          else if (log.title == "change" && (log.event.includes("change") || log.event.includes("move") || log.event.includes("delete"))) {
             number_of_changes++;
             time.push(time_diff(begin_time, log.publishedDate, false));
           }
-          else if (log.title == "win") {
+          // runs
+          else if (log.title == "win" || log.title == "test") {
             number_of_runs++;
             time.push(time_diff(begin_time, log.publishedDate, false));
             // to break after the first win
-            throw new Error();
-          }
-          // if the code was tests, mark the time of the test
-          else if (log.title == "test") {
-            number_of_runs++;
-            time.push(time_diff(begin_time, log.publishedDate, false));
+            if (log.title == 'win'){
+              throw new Error();
+            }
           }
         });
       }catch(e){
@@ -140,13 +141,13 @@ module.exports = {
       number_of_runs_per_user.push(number_of_runs);
       // time in minutes till the first win
       time_to_first_win = time[time.length - 1] / 60
-      if (time_to_first_win > 45 ){
-        // if the time is more than 45 minutes
+      if (time_to_first_win > 120) {
+        // if the time is more than 120 minutes
         // like in the case of the user with the id 5bbdbb2cc40a6a07cc833af8
         // where the first win was after nearly a month of the first time
         // she opened the first level
-        time_per_user.push(45);
-      }else{
+        time_per_user.push(120);
+      } else {
         time_per_user.push(time_to_first_win);
       }
     });
@@ -158,11 +159,6 @@ module.exports = {
     average_values.push(arrAvg(number_of_runs_per_user).toFixed(1));
     average_values.push(arrAvg(time_per_user).toFixed(1));
 
-    // console.log(number_of_changes_per_user)
-    // console.log(number_of_creates_per_user)
-    // console.log(number_of_runs_per_user)
-    // console.log(time_per_user)
-    // console.log(average_values)
     return average_values;
   }
 };
@@ -184,6 +180,40 @@ function plot_line(x_axis, y_axis){
   };
   return trace;
 }
+
+function plot_points(number_of_blocks, time, type){
+  if(type == "test"){
+    color = 'rgb(255, 0, 0)'
+    name= 'Test'
+  }else{
+    color = 'rgb(50,205,50)'
+    name = 'Win'
+  }
+  var trace = {
+    x: time,
+    y: number_of_blocks,
+    mode: 'markers',
+    marker: {
+      color: color,
+      size: 12
+    },
+    name: name
+  };
+  return trace;
+}
+
+function time_diff(begin_time, end_time, add_one){
+  diff_ms = end_time - begin_time
+  // time difference in seconds
+  diff = diff_ms / 1000;
+  if (add_one){
+    // adding one second is nessecary for the blocks given in each level
+    return diff + 1;
+  }
+  return diff;
+
+}
+
 
 // function plot_tests_and_wins(tests, wins, changes) {
 //   var shapes = [];
@@ -220,35 +250,3 @@ function plot_line(x_axis, y_axis){
 //   return layout;
 // }
 
-function plot_points(number_of_blocks, time, type){
-  if(type == "test"){
-    color = 'rgb(255, 0, 0)'
-    name= 'Test'
-  }else{
-    color = 'rgb(50,205,50)'
-    name = 'Win'
-  }
-  var trace = {
-    x: time,
-    y: number_of_blocks,
-    mode: 'markers',
-    marker: {
-      color: color,
-      size: 12
-    },
-    name: name
-  };
-  return trace;
-}
-function time_diff(begin_time, end_time, add_one){
-  diff_ms = end_time - begin_time
-  // diff = Math.round(((diff_ms % 86400000) % 3600000) / 60000);
-  // time difference in seconds
-  diff = diff_ms / 1000;
-  if (add_one){
-    // adding one second is nessecary for the blocks given in each level
-    return diff + 1;
-  }
-  return diff;
-
-}

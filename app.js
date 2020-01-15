@@ -60,15 +60,14 @@ app.get("/", async function(req, res){
 
 app.post("/", async function(req, res) {
   if (!req.body.user){
-    // console.log(req.body.level)
+    // stats about all users in specific levels
     var data = await get_level_data(String(req.body.level))
-    console.log(data[0]);
     res.render("index", {data: data});
   }else{
-    // console.log(req.body.level)
+    // stats about certain user in specific level
     let idToSearch = mongoose.Types.ObjectId(req.body.user);
     let levelToSearch = String(req.body.level);
-    // let idToSearch = mongoose.Types.ObjectId("5badc8e4ad41aedfe7363962");
+
     Ctgamestudio.find({
       owner: idToSearch,
       level: levelToSearch,
@@ -85,11 +84,14 @@ app.post("/", async function(req, res) {
 
 async function get_level_data(level){
   // get the number of levels most of the users have passed
-  // and define the users passed more thean this number as high success
+  // and define the users passed more than this number as high success
   // otherwise low success
   var levels_most_users_passed = number_of_levels();
+  // get data for users passed more than 5 levels
   var high_success_users = await get_users_data(level, "$gt");
+  // get data for users passed less than 5 levels
   var low_success_users = await get_users_data(level, '$lt');
+  // get data for users passed 5 levels
   var average_success_users = await get_users_data(level, '$eq');
   var trace1 = {
     x: ['creates', 'changes', 'runs', 'time'],
@@ -125,27 +127,61 @@ async function get_level_data(level){
 }
 
 async function get_users_data(level, type_of_users){
+  // exclude testing and developing accounts
   var included_users= await User.find({email :{$nin :excludedUsers}}).select("_id");
   var included_users_ids = included_users.map(a => a._id);
   var users_ids =
     await Ctgamestudio.aggregate(
       [{
+        // match users with at least one win
+        // and not a tester
         $match: {
           title: "win",
           owner : {$in : included_users_ids}
         }
       },
+      // group by user and level
       {
         $group:
           { _id: { owner: "$owner", level: "$level" } }
       },
+      // group again by owner and count number of levels
       {
         $group: { _id: "$_id.owner", count: { $sum: 1 } }
       },
-        { $match: { count: { [type_of_users] : 5 } } }
+      // filter users according to type of users
+      { $match: { count: { [type_of_users] : 5 } } }
       ]).exec().then(result => {
-        return result.map(a => a._id);;
+        return result.map(a => a._id);
       });
+
+  // to include users with zero wins
+  if(type_of_users == "$lt"){
+    users_ids_with_atleast_one_win = await Ctgamestudio.aggregate(
+      [{$group: {
+          _id: { owner: "$owner", title: "$title", level: "$level" },
+          count: { $sum: 1 }
+          }
+        },
+        {$match: {
+          "_id.title": "win"
+          }
+        },
+        { $group: {
+          _id: "$_id.owner",
+          }
+        }]).exec().then(result => {
+          return result.map(a => a._id);
+        });
+
+    users_ids_with_zero_wins = await Ctgamestudio.distinct("owner",{ $and: [
+      {owner :{$in: included_users_ids}},
+      { owner: { $nin: users_ids_with_atleast_one_win}}
+      ]
+    })
+    users_ids.push(...users_ids_with_zero_wins);
+  }
+  // get all level logs for the ids we have
   var users_data = await Ctgamestudio.aggregate(
     [{
       $match: {
@@ -169,11 +205,14 @@ async function get_users_data(level, type_of_users){
 async function number_of_levels(){
   levels_passed_by_each_user = await Ctgamestudio.aggregate(
     [{
+        // all users with that won at least one level
         $match: { title: "win" }
       },
+      // group them by user and level
       { $group:
         { _id: { owner: "$owner", level: "$level" }}
       },
+      // group one more time to calculate number of levels each user passed
       { $group: {
         _id: "$_id.owner",
         count: { $sum: 1 }
@@ -181,6 +220,7 @@ async function number_of_levels(){
     }]
   );
   let number_of_levels = levels_passed_by_each_user.map(a => a.count);
+  // get the most frequent number of levels passed
   return get_most_frequent_levels_passed(number_of_levels);
 }
 
