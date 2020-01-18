@@ -20,6 +20,7 @@ mongoose.connect(
 
 // start express app
 const app = express();
+app.use(express.static(__dirname + '/public'));
 app.set("view engine", "pug");
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
@@ -62,7 +63,7 @@ app.post("/", async function(req, res) {
   if (!req.body.user){
     // stats about all users in specific levels
     var data = await get_level_data(String(req.body.level))
-    res.render("index", {data: data});
+    res.send({data: data});
   }else{
     // stats about certain user in specific level
     let idToSearch = mongoose.Types.ObjectId(req.body.user);
@@ -75,9 +76,10 @@ app.post("/", async function(req, res) {
     }).exec().then(result => {
       data = process.process(result);
       if(data){
-        res.render("index", { data: data});
+        res.send({data: data, user: req.body.user, level: levelToSearch});
+      }else{
+        res.send({error:true});
       }
-      res.render("index", { error: true});
     })
   }
 });
@@ -194,10 +196,11 @@ async function get_users_data(level, type_of_users){
         { _id: "$owner", logs: { $push: "$$ROOT" } }
     }
     ]).exec().then(result => {
-      if (result){
+      if (result.length != 0){
         data = process.get_level_data(result);
         return data;
       }
+      return [0,0,0,0];
     });
   return users_data;
 }
@@ -242,5 +245,14 @@ function get_most_frequent_levels_passed(array) {
   }
   return maxEl;
 }
+
+app.post("/get_logs", async function (req, res) {
+  let idToSearch = mongoose.Types.ObjectId(req.body.user);
+  let levelToSearch = String(req.body.level);
+  let date = req.body.date;
+  log = await Ctgamestudio.find({owner : idToSearch, level:levelToSearch, publishedDate: date});
+  console.log(log[0].blockly)
+  res.send(log[0].blockly );
+});
 
 app.listen(3000)

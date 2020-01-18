@@ -6,10 +6,11 @@ module.exports = {
       let number_of_blocks;
       let changes = [];
       let changes_time = [];
-      let wins = []
-      let wins_time = []
-      let tests = []
+      let wins = [];
+      let wins_time = [];
+      let tests = [];
       let tests_time = [];
+      let all_times = [];
       if(logs.length == 0){
         return null;
       }
@@ -28,6 +29,7 @@ module.exports = {
           number_of_blocks += 1;
           changes.push(number_of_blocks);
           changes_time.push(time_diff(begin_time, log.publishedDate, true))
+          all_times.push(log.publishedDate);
         }
         // if blocks were created, add the number of them to the total blocks number of the program
         else if (log.title == "change" && log.event.includes("create")) {
@@ -35,6 +37,7 @@ module.exports = {
           number_of_blocks += event.ids.length;
           changes.push(number_of_blocks);
           changes_time.push(time_diff(begin_time, log.publishedDate, true))
+          all_times.push(log.publishedDate);
         }
         // if blocks were deleted, subtract the number of deleted from the total number of blocks
         else if (log.title == "change" && log.event.includes("delete")) {
@@ -42,16 +45,19 @@ module.exports = {
           number_of_blocks -= event.ids.length;
           changes.push(number_of_blocks);
           changes_time.push(time_diff(begin_time, log.publishedDate, true))
+          all_times.push(log.publishedDate);
         }
         else if (log.title == "change" && (log.event.includes("change") || log.event.includes("move"))) {
           changes.push(number_of_blocks);
           changes_time.push(time_diff(begin_time, log.publishedDate, true))
+          all_times.push(log.publishedDate);
         }
         else if (log.title == "win") {
           changes.push(number_of_blocks);
           changes_time.push(time_diff(begin_time, log.publishedDate, true))
           wins.push(number_of_blocks);
           wins_time.push(time_diff(begin_time, log.publishedDate, true))
+          all_times.push(log.publishedDate);
           throw new Error();
         }
         // if the code was tests, mark the time of the test
@@ -61,6 +67,7 @@ module.exports = {
           changes_time.push(time_diff(begin_time, log.publishedDate, true))
           tests.push(number_of_blocks);
           tests_time.push(time_diff(begin_time, log.publishedDate, true))
+          all_times.push(log.publishedDate);
         }
       });
     }
@@ -79,7 +86,7 @@ module.exports = {
         title: 'Number of Blocks'
       }
     };
-    return [data, layout];
+    return [data, layout,all_times];
   },
   get_level_data : function (users){
     // return the average values in this sequence
@@ -93,7 +100,6 @@ module.exports = {
       return null;
     }
     users.forEach(function (user) {
-      console.log(user._id)
       // for each user
       // keep track of the number of creates,changes, run and time
       var first = true;
@@ -120,7 +126,7 @@ module.exports = {
             time.push(time_diff(begin_time, log.publishedDate, false));
           }
           // change, move, delete
-          else if (log.title == "change" && (log.event.includes("change") || log.event.includes("move") || log.event.includes("delete"))) {
+          else if (log.title == "change") {
             number_of_changes++;
             time.push(time_diff(begin_time, log.publishedDate, false));
           }
@@ -213,40 +219,3 @@ function time_diff(begin_time, end_time, add_one){
   return diff;
 
 }
-
-
-// function plot_tests_and_wins(tests, wins, changes) {
-//   var shapes = [];
-//   var max_y = Math.max(...changes);
-//   tests.forEach(function (test){
-//     shapes.push({
-//       type: 'line',
-//       x0: test,
-//       y0: 0,
-//       x1: test,
-//       y1: max_y,
-//       line: {
-//         color: 'rgb(219, 64, 82)',
-//         width: 3
-//       }
-//     },)
-//   });
-//   wins.forEach(function(win){
-//     shapes.push({
-//       type: 'line',
-//       x0: win,
-//       y0: 0,
-//       x1: win,
-//       y1: max_y,
-//       line: {
-//         color: 'rgb(50,205,50)',
-//         width: 3
-//       }
-//     })
-//   })
-//   var layout = {
-//     shapes: shapes
-//   };
-//   return layout;
-// }
-

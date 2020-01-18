@@ -6,46 +6,113 @@ html
     script(src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js")
     link(rel='stylesheet', href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css", type='text/css')
     script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js")
+    <script src="js/blockly_compressed.js"></script>
+    <script src="js/blocks_compressed.js"></script>
+    <script src="js/msg/de.js"></script>
+    <script src="js/javascript_compressed.js"></script>
+    <script src="js/acorn_interpreter.js"></script>
+    <script src='js/blocks.js'></script>
+    script.
+      var error = true;
+    //- <script src='js/initialize.js'></script>
   body
     .container(style='min-width: 1000px')
       .row.m-0
         label(for='selectUser') Select User
-      form#form(method='POST' action='/')
-          .row.form-group
-            .col-md-3
-              select#selectUser.form-control(name='user')
-                option(value=null,selected= true) Select User
-                each user in users
-                  option(value=user._id)=user.name.first+" "+user.name.last
-                //- each user in users
-                //-   option=user
-            .col-md-3
-              select#selectLevel.form-control(name='level')
-                option(value=null,selected= true) Select Level
-                each level in levels
-                  option=level
-            button.btn.btn-primary(type='submit') Submit
+      .row.form-group
+        .col-md-3
+          select#selectUser.form-control(name='user')
+            option(value=null,selected= true) Select User
+            each user in users
+              option(value=user._id)=user.name.first+" "+user.name.last
+        .col-md-3
+          select#selectLevel.form-control(name='level')
+            option(value=null,selected= true) Select Level
+            each level in levels
+              option=level
+        button#firstStats.btn.btn-primary Submit
+
     .container(style='min-width: 1000px')
       .row.m-0
         label(for='selectUser') Select Level
-      form#form(method='POST' action='/')
-        .row.form-group
-          .col-md-4
-            select#selectLevel1.form-control(name='level')
-              option(value=null,selected= true) Select Level
-              each level in levels
-                option=level
-          button.btn.btn-primary(type='submit') Submit
-    if data
-      div#myChart
-    if error
-      .container(style='min-width: 1000px').alert.alert-danger
-        strong Error
-        p No logs were found.
-
+      .row.form-group
+        .col-md-4
+          select#selectLevel1.form-control(name='level')
+            option(value=null,selected= true) Select Level
+            each level in levels
+              option=level
+        button#secondStats.btn.btn-primary Submit
+    .row
+      #myChart.col-8
+      div#blocklyDiv.col-4
+    .container#errorMsg(style='min-width: 1000px').alert.alert-danger
+      strong Error
+      p No logs were found.
+    include ctGameStudioToolbox
+    +ctGameStudioToolbox()
+    xml#workspaceBlocks(xmlns='http://www.w3.org/1999/xhtml', style='display:none')
 
 script.
-  var data = JSON.parse('!{JSON.stringify(data)}');
-  console.log(data[0])
-  Plotly.newPlot("myChart",data[0], data[1]);
+  var chart = document.getElementById("myChart");
+  var errorMsg = document.getElementById("errorMsg");
+  var blocklyDiv = document.getElementById("blocklyDiv");
+  var workspace = Blockly.inject(blocklyDiv);
+  blocklyDiv.hidden = true;
+  errorMsg.hidden = true;
+  time_array = []
+  $("#firstStats").click(function(e){
+    $.ajax({
+      type: "POST",
+      url: "/",
+      data: {
+        user: $("#selectUser").val(),
+        level: $("#selectLevel").val()
+      },
+      success:function(result){
+        if(result.error){
+          chart.hidden = true;
+          errorMsg.hidden = false;
+          blocklyDiv.hidden = true;
+        }else{
+          chart.hidden = false;
+          errorMsg.hidden = true;
+          time_array = result.data[2];
+          Plotly.newPlot(chart,result.data[0], result.data[1]);
+
+          chart.on('plotly_click', function(result){
+            $.ajax({
+              method: "POST",
+              url: "/get_logs",
+              data: {
+                user: $("#selectUser").val(),
+                level: $("#selectLevel").val(),
+                date: time_array[result.points[0].pointIndex]
+                }
+              })
+              .done(function( log ) {
+                blocklyDiv.hidden = false;
+                Blockly.svgResize(workspace);
+                Blockly.mainWorkspace.clear();
+                Blockly.Xml.domToWorkspace(Blockly.Xml.textToDom(log), workspace);
+              });
+          });
+        }
+      }
+    });
+  });
+  $("#secondStats").click(function(e){
+    $.ajax({
+      type: "POST",
+      url: "/",
+      data: {
+        level: $("#selectLevel1").val()
+      },
+      success:function(result){
+        chart.hidden = false;
+        errorMsg.hidden = true;
+        blocklyDiv.hidden = true;
+        Plotly.newPlot(chart,result.data[0], result.data[1]);
+      }
+    });
+  });
 

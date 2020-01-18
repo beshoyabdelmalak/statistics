@@ -8,6 +8,7 @@
     "start": "nodemon app.js"
   },
   "dependencies": {
+    "blockly": "^3.20191014.4",
     "body-parser": "^1.19.0",
     "bootstrap": "^4.4.1",
     "express": "^4.17.1",
