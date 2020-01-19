@@ -96,7 +96,7 @@ async function get_level_data(level){
   // get data for users passed 5 levels
   var average_success_users = await get_users_data(level, '$eq');
   var trace1 = {
-    x: ['creates', 'changes', 'runs', 'time'],
+    x: ['creates', 'changes', 'runs', 'time', 'ifs', 'fors', 'functions', 'blocks'],
     y: high_success_users,
     name: 'High success',
     marker: { color: 'rgb(85,202,106)' },
@@ -104,7 +104,7 @@ async function get_level_data(level){
   };
 
   var trace2 = {
-    x: ['creates', 'changes', 'runs', 'time'],
+    x: ['creates', 'changes', 'runs', 'time', 'ifs', 'fors', 'functions', 'blocks'],
     y: average_success_users,
     name: 'Average',
     marker: { color: 'rgb(27,141,253)' },
@@ -112,7 +112,7 @@ async function get_level_data(level){
   };
 
   var trace3 = {
-    x: ['creates', 'changes', 'runs', 'time'],
+    x: ['creates', 'changes', 'runs', 'time', 'ifs', 'fors', 'functions', 'blocks'],
     y: low_success_users,
     name: 'Low success',
     marker: { color: 'rgb(234,54,81)' },
@@ -228,6 +228,14 @@ async function number_of_levels(){
 }
 
 function get_most_frequent_levels_passed(array) {
+  // how many users passed certain number of levels
+  // var counts = {};
+
+  // for (var i = 0; i < array.length; i++) {
+  //   var num = array[i];
+  //   counts[num] = counts[num] ? counts[num] + 1 : 1;
+  // }
+  // console.log(counts);
   if (array.length == 0)
     return null;
   var modeMap = {};
@@ -251,8 +259,7 @@ app.post("/get_logs", async function (req, res) {
   let levelToSearch = String(req.body.level);
   let date = req.body.date;
   log = await Ctgamestudio.find({owner : idToSearch, level:levelToSearch, publishedDate: date});
-  console.log(log[0].blockly)
-  res.send(log[0].blockly );
+  res.send(log[0].blockly);
 });
 
 app.listen(3000)

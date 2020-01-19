@@ -22,6 +22,7 @@ module.exports = {
           begin_time = log.publishedDate;
           changes.push(number_of_blocks);
           changes_time.push(0);
+          all_times.push(log.publishedDate);
           first = false;
         }
         // if it reate a variable, count it as adding one block
@@ -95,11 +96,16 @@ module.exports = {
     let number_of_creates_per_user = [];
     let number_of_changes_per_user = [];
     let number_of_runs_per_user = [];
+    let number_of_ifs_per_user = [];
+    let number_of_fors_per_user = [];
+    let number_of_functions_per_user = [];
+    let number_of_blocks_per_user = [];
     let time_per_user = [];
     if (users.length == 0) {
       return null;
     }
     users.forEach(function (user) {
+      // console.log(user._id);
       // for each user
       // keep track of the number of creates,changes, run and time
       var first = true;
@@ -107,9 +113,14 @@ module.exports = {
       let number_of_creates = 0;
       let number_of_changes = 0;
       let number_of_runs = 0;
+      let number_of_ifs = 0;
+      let number_of_fors = 0;
+      let number_of_functions = 0;
+      let number_of_blocks = 0;
+      let index_of_runs = [];
       let time = [];
       try{
-        user.logs.forEach(function (log){
+        user.logs.forEach(function (log, i){
           // for the first block, set the time
           if (first) {
             begin_time = log.publishedDate;
@@ -133,6 +144,9 @@ module.exports = {
           // runs
           else if (log.title == "win" || log.title == "test") {
             number_of_runs++;
+            // console.log(log)
+            // console.log(i);
+            index_of_runs.push(i);
             time.push(time_diff(begin_time, log.publishedDate, false));
             // to break after the first win
             if (log.title == 'win'){
@@ -142,6 +156,8 @@ module.exports = {
         });
       }catch(e){
       }
+      var last_log = user.logs[index_of_runs[index_of_runs.length - 1]]
+      // console.log(last_log);
       number_of_changes_per_user.push(number_of_changes);
       number_of_creates_per_user.push(number_of_creates);
       number_of_runs_per_user.push(number_of_runs);
@@ -156,6 +172,20 @@ module.exports = {
       } else {
         time_per_user.push(time_to_first_win);
       }
+
+      // calculate number of ifs, functions, for loops
+      if (last_log){
+        number_of_ifs = (last_log.blockly.match(/controls_if/g) || []).length;
+        number_of_fors = (last_log.blockly.match(/controls_repeat_ext/g) || []).length + (last_log.blockly.match(/controls_whileUntil/g) || []).length + (last_log.blockly.match(/controls_for/g) || []).length;
+        number_of_functions = (last_log.blockly.match(/procedures/g) || []).length;
+        number_of_blocks = (last_log.blockly.match(/<block/g) || []).length;
+      }
+      // console.log(number_of_ifs);
+      // console.log(number_of_fors);
+      number_of_ifs_per_user.push(number_of_ifs);
+      number_of_fors_per_user.push(number_of_fors);
+      number_of_functions_per_user.push(number_of_functions);
+      number_of_blocks_per_user.push(number_of_blocks);
     });
     // function to calculate average of for all users
     const arrAvg = arr => arr.reduce((a, b) => a + b, 0) / arr.length
@@ -164,6 +194,16 @@ module.exports = {
     average_values.push(arrAvg(number_of_changes_per_user).toFixed(1));
     average_values.push(arrAvg(number_of_runs_per_user).toFixed(1));
     average_values.push(arrAvg(time_per_user).toFixed(1));
+    average_values.push(arrAvg(number_of_ifs_per_user).toFixed(1));
+    average_values.push(arrAvg(number_of_fors_per_user).toFixed(1));
+    average_values.push(arrAvg(number_of_functions_per_user).toFixed(1));
+    average_values.push(arrAvg(number_of_blocks_per_user).toFixed(1));
+    // console.log(number_of_creates_per_user);
+    // console.log(number_of_changes_per_user);
+    // console.log(number_of_runs_per_user);
+    // console.log(number_of_ifs_per_user);
+    // console.log(number_of_fors_per_user);
+    // console.log(number_of_functions_per_user);
 
     return average_values;
   }

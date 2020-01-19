@@ -79,17 +79,24 @@ script.
           time_array = result.data[2];
           Plotly.newPlot(chart,result.data[0], result.data[1]);
 
+          var point_index;
           chart.on('plotly_click', function(result){
+            if (result.points.length == 2){
+              point_index = result.points[1].pointIndex;
+            }else{
+              point_index = result.points[0].pointIndex;
+            }
             $.ajax({
               method: "POST",
               url: "/get_logs",
               data: {
                 user: $("#selectUser").val(),
                 level: $("#selectLevel").val(),
-                date: time_array[result.points[0].pointIndex]
+                date: time_array[point_index]
                 }
               })
               .done(function( log ) {
+                //- console.log(log)
                 blocklyDiv.hidden = false;
                 Blockly.svgResize(workspace);
                 Blockly.mainWorkspace.clear();
