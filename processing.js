@@ -194,10 +194,10 @@ module.exports = {
     average_values.push(arrAvg(number_of_changes_per_user).toFixed(1));
     average_values.push(arrAvg(number_of_runs_per_user).toFixed(1));
     average_values.push(arrAvg(time_per_user).toFixed(1));
-    average_values.push(arrAvg(number_of_ifs_per_user).toFixed(1));
-    average_values.push(arrAvg(number_of_fors_per_user).toFixed(1));
-    average_values.push(arrAvg(number_of_functions_per_user).toFixed(1));
     average_values.push(arrAvg(number_of_blocks_per_user).toFixed(1));
+    // average_values.push(arrAvg(number_of_ifs_per_user).toFixed(1));
+    // average_values.push(arrAvg(number_of_fors_per_user).toFixed(1));
+    // average_values.push(arrAvg(number_of_functions_per_user).toFixed(1));
     // console.log(number_of_creates_per_user);
     // console.log(number_of_changes_per_user);
     // console.log(number_of_runs_per_user);

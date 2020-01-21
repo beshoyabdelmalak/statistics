@@ -96,15 +96,15 @@ async function get_level_data(level){
   // get data for users passed 5 levels
   var average_success_users = await get_users_data(level, '$eq');
   var trace1 = {
-    x: ['creates', 'changes', 'runs', 'time', 'ifs', 'fors', 'functions', 'blocks'],
-    y: high_success_users,
-    name: 'High success',
-    marker: { color: 'rgb(85,202,106)' },
+    x: ['creates', 'changes', 'runs', 'time', 'blocks'],
+    y: low_success_users,
+    name: 'Low success',
+    marker: { color: 'rgb(234,54,81)' },
     type: 'bar'
   };
 
   var trace2 = {
-    x: ['creates', 'changes', 'runs', 'time', 'ifs', 'fors', 'functions', 'blocks'],
+    x: ['creates', 'changes', 'runs', 'time', 'blocks'],
     y: average_success_users,
     name: 'Average',
     marker: { color: 'rgb(27,141,253)' },
@@ -112,10 +112,10 @@ async function get_level_data(level){
   };
 
   var trace3 = {
-    x: ['creates', 'changes', 'runs', 'time', 'ifs', 'fors', 'functions', 'blocks'],
-    y: low_success_users,
-    name: 'Low success',
-    marker: { color: 'rgb(234,54,81)' },
+    x: ['creates', 'changes', 'runs', 'time', 'blocks'],
+    y: high_success_users,
+    name: 'High success',
+    marker: { color: 'rgb(85,202,106)' },
     type: 'bar'
   };
 
@@ -259,6 +259,7 @@ app.post("/get_logs", async function (req, res) {
   let levelToSearch = String(req.body.level);
   let date = req.body.date;
   log = await Ctgamestudio.find({owner : idToSearch, level:levelToSearch, publishedDate: date});
+  // console.log(log[0]);
   res.send(log[0].blockly);
 });
 
