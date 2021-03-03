@@ -19,7 +19,7 @@
     "plotly": "^1.0.6",
     "plotly.js-dist": "^1.51.3",
     "popper.js": "^1.16.0",
-    "pug": "^2.0.4"
+    "pug": "^3.0.1"
   },
   "devDependencies": {}
 }
